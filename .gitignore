@@ -1,7 +1,18 @@
 # Ignore node_modules directory
 node_modules/
 
-# Ignore .env file
+# Ignore environment configuration files
 .env
 
-# Ignore other specific files or directories
+# Ignore log files
+*.log
+
+# Ignore npm debug log
+npm-debug.log
+
+# Ignore VS Code settings
+.vscode/
+
+# Ignore any OS or editor-generated files
+.DS_Store
+Thumbs.db
