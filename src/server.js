@@ -4,9 +4,11 @@ const pool = require('./client');
 const { validationResult } = require('express-validator');
 const usersRouter = require('../routes/users');
 const ordersRouter = require('../routes/orders');
+const cors = require('cors');
 // Create an Express application
 const app = express();
-
+// Use the cors middleware
+app.use(cors());
 // Middleware to parse JSON bodies
 app.use(bodyParser.json());
 app.use('/users', usersRouter);
