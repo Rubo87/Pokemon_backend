@@ -32,16 +32,32 @@ router.get('/:id', async (req, res) => {
 // Route to get specific information of a pokemon by ID and info type from the database
 router.get('/:id/:info', async (req, res) => {
   const { id, info } = req.params;
+
+  // List of valid info types (column names)
+  const validInfoTypes = [
+    'name_english', 'name_japanese', 'name_chinese', 'name_french',
+    'type1', 'type2', 'base_hp', 'base_attack', 'base_defense',
+    'base_spattack', 'base_spdefense', 'base_speed'
+  ];
+
+  // Check if the requested info type is valid
+  if (!validInfoTypes.includes(info)) {
+    return res.status(400).json({ message: 'Invalid info type' });
+  }
+
   try {
-    const query = 'SELECT $2 FROM pokemon WHERE id = $1';
-    const { rows } = await pool.query(query, [id, info]);
+    const query = `SELECT ${info} FROM pokemon WHERE id = $1`;
+    const { rows } = await pool.query(query, [id]);
+
     if (rows.length === 0) {
       return res.status(404).json({ message: 'Pokemon not found' });
     }
+
     const infoValue = rows[0][info];
     if (!infoValue) {
       return res.status(400).json({ message: 'Invalid info type' });
     }
+
     res.json({ [info]: infoValue });
   } catch (error) {
     console.error('Error fetching pokemon info:', error);
