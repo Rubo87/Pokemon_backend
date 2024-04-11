@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const port = 3000; // Port number can be changed
+const pool = require('./client');
 
 // Middleware for handling JSON data
 app.use(express.json());
@@ -9,10 +10,11 @@ app.use(express.json());
 app.use(require('cors')());
 
 // Routes
-const pokemonRouter = require('../routes/pokemon');
+const pokemonRouter = require('./routes/pokemon');
 app.use('/pokemon', pokemonRouter);
 
 // Start server
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });

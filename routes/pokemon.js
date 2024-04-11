@@ -1,62 +1,52 @@
 const express = require('express');
 const router = express.Router();
-const jsonData = require('../pokedex.json');
+const pool = require('../client.js'); // Import the PostgreSQL pool
 
-// Route to get the complete list of pokemon
-router.get('/', (req, res) => {
-  res.json(jsonData);
+// Route to get the complete list of pokemon from the database
+router.get('/', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM pokemon');
+    res.json(rows);
+  } catch (error) {
+    console.error('Error executing query', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
-// Route to get details of a specific pokemon by ID
-router.get('/:id', (req, res) => {
+// Route to get details of a specific pokemon by ID from the database
+router.get('/:id', async (req, res) => {
   const { id } = req.params;
-  const pokemon = jsonData.find(p => p.id == id);
-  if (!pokemon) {
-    return res.status(404).json({ message: 'Pokemon not found' });
-  }
-  res.json(pokemon);
-});
-
-// Route to get specific information of a pokemon by ID and info type
-router.get('/:id/:info', (req, res) => {
-  const { id, info } = req.params;
-  const pokemon = jsonData.find(p => p.id == id);
-  if (!pokemon) {
-    return res.status(404).json({ message: 'Pokemon not found' });
-  }
-  const infoValue = pokemon[info];
-  if (!infoValue) {
-    return res.status(400).json({ message: 'Invalid info type' });
-  }
-  res.json({ [info]: infoValue });
-});
-// Segunda opción
-/* router.get('/:id/:info', (req, res) => {
-    const { id, info } = req.params;
-    const pokemon = jsonData.find(p => p.id == id);
-  
-    if (!pokemon) {
+  try {
+    const query = 'SELECT * FROM pokemon WHERE id = $1';
+    const { rows } = await pool.query(query, [id]);
+    if (rows.length === 0) {
       return res.status(404).json({ message: 'Pokemon not found' });
     }
-  
-    let infoValue;
-  
-    // Check the requested info type and retrieve the corresponding value
-    switch (info) {
-      case 'name':
-        infoValue = pokemon.name;
-        break;
-      case 'type':
-        infoValue = pokemon.type;
-        break;
-      case 'base':
-        infoValue = pokemon.base;
-        break;
-      default:
-        return res.status(400).json({ message: 'Invalid info type' });
+    res.json(rows[0]);
+  } catch (error) {
+    console.error('Error fetching pokemon by ID:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Route to get specific information of a pokemon by ID and info type from the database
+router.get('/:id/:info', async (req, res) => {
+  const { id, info } = req.params;
+  try {
+    const query = 'SELECT $2 FROM pokemon WHERE id = $1';
+    const { rows } = await pool.query(query, [id, info]);
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'Pokemon not found' });
     }
-  
+    const infoValue = rows[0][info];
+    if (!infoValue) {
+      return res.status(400).json({ message: 'Invalid info type' });
+    }
     res.json({ [info]: infoValue });
-  }); */
+  } catch (error) {
+    console.error('Error fetching pokemon info:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 module.exports = router;
